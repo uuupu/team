@@ -51,7 +51,33 @@ def analyze_coin(name, coin_id):
 نسبة المخاطرة: {risk}
 الضريبة المتوقعة: {tax}$  
 """
-    return msg
+    return name, change_24h, msg
+
+# التعامل مع الرسائل التي تحتوي على كلمة "test"
+@bot.message_handler(func=lambda message: message.text.lower() == "test")
+def handle_test_message(message):
+    bot.reply_to(message, "البوت شغال!")
+
+# التعامل مع الرسائل التي تحتوي على كلمة "توقع"
+@bot.message_handler(func=lambda message: message.text.lower() == "توقع")
+def handle_taqoaa_message(message):
+    # تحليل العملات واختيار أفضل العملات بناءً على التغير في السعر (على سبيل المثال)
+    analyzed_coins = []
+    for name, coin_id in coins.items():
+        try:
+            name, change_24h, msg = analyze_coin(name, coin_id)
+            if change_24h > 5:  # على سبيل المثال، العملة التي تغيرت بنسبة أكثر من 5% في آخر 24 ساعة
+                analyzed_coins.append(msg)
+            time.sleep(1)
+        except Exception as e:
+            continue
+    
+    if analyzed_coins:
+        full_message = "\n".join(analyzed_coins)
+    else:
+        full_message = "لا توجد عملات حالياً تستحق المتابعة بناءً على المعايير المحددة."
+    
+    bot.reply_to(message, full_message)
 
 def main_loop():
     messages = []
